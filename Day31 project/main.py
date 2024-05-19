@@ -3,11 +3,20 @@ from tkinter import *
 from tkinter import messagebox
 import random
 import pandas
-from math import *
 
-file = pandas.read_csv("data/JPwords - Sheet1.csv")
-to_learn = file.to_dict(orient="records")
+
+BACKGROUND_COLOR = "#B1DDC6"
 current_card_num = 0
+to_learn = {}
+
+try:
+    file = pandas.read_csv("data/words_to_learn.csv")
+except FileNotFoundError:
+    original_file = pandas.read_csv("data/JPwords - Sheet1.csv")
+    to_learn = original_file.to_dict(orient="records")
+else:
+    to_learn = file.to_dict(orient="records")
+
 
 
 def next_card():
@@ -19,6 +28,13 @@ def next_card():
     canvas.itemconfig(jp_img, image=front_img)
     flip_timer = window.after(ms=3000, func=flip_card)
 
+def is_known():
+    to_learn.remove(to_learn[current_card_num])
+    data = pandas.DataFrame(to_learn)
+    data.to_csv("data/words_to_learn.csv", index=False)
+    next_card()
+
+
 
 def flip_card():
     canvas.itemconfig(jp_img, image=card_back)
@@ -29,7 +45,7 @@ def flip_card():
 #UI_________________________________
 
 
-BACKGROUND_COLOR = "#B1DDC6"
+
 window = Tk()
 window.title("Flash cards")
 window.config(padx=50, pady=50, background=BACKGROUND_COLOR)
@@ -49,7 +65,7 @@ unknown_btn = PhotoImage(file="images/wrong.png")
 uk_btn = Button(image=unknown_btn, highlightthickness=0)
 uk_btn.grid(column=0, row=3)
 known_btn = PhotoImage(file="images/right.png")
-k_btn = Button(image=known_btn, highlightthickness=0, command=next_card)
+k_btn = Button(image=known_btn, highlightthickness=0, command=is_known)
 k_btn.grid(column=2, row=3)
 
 next_card()
